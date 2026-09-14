@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>ADK Parking</title>
+</head>
+<body>
+
+    <div align="center">
+        <img src="banner.png.png" width="640" alt="ADK Parking"><br><br>
+        <img src="icon.png" width="56" height="56" alt="ADK">
+        <br>
+        <h1>ADK Parking</h1>
+        <p>Gestion compl&egrave;te des parkings d'entreprise dans Odoo 18 : places, r&eacute;servations, tickets, et facturation int&eacute;gr&eacute;e pour les parkings payants.</p>
+        <p><font size="2" color="#8a8189">Odoo 18 &nbsp;&middot;&nbsp; Parkings gratuits ou payants &nbsp;&middot;&nbsp; Facturation &amp; paiement &nbsp;&middot;&nbsp; Ticket de r&eacute;servation &nbsp;&middot;&nbsp; Tableau de bord</font></p>
+    </div>
+
+    <hr>
+
+    <h2>R&ocirc;les utilisateurs</h2>
+    <p>Le module ajoute deux r&ocirc;les d'acc&egrave;s. V&eacute;rifiez qu'ils correspondent &agrave; l'organisation de votre &eacute;quipe avant la mise en production.</p>
+
+    <h3>Agent de Parking</h3>
+    <ul>
+        <li>Cr&eacute;e et g&egrave;re les r&eacute;servations (personnel et clients)</li>
+        <li>Confirme, termine ou annule une r&eacute;servation</li>
+        <li>Imprime le ticket de r&eacute;servation</li>
+        <li>Acc&egrave;s en lecture/&eacute;criture aux parkings, places et r&eacute;servations (aucune suppression)</li>
+    </ul>
+
+    <h3>Manager Parking</h3>
+    <ul>
+        <li>Cumule tous les droits Agent de Parking</li>
+        <li>Seul habilit&eacute; &agrave; cr&eacute;er une facture pour une r&eacute;servation Client (parking payant)</li>
+        <li>Acc&egrave;s au module Facturation n&eacute;cessaire pour consulter et encaisser les factures</li>
+        <li>Acc&egrave;s complet (cr&eacute;ation/modification/suppression) sur les parkings, places et r&eacute;servations</li>
+    </ul>
+
+    <hr>
+
+    <h2>Le processus, &eacute;tape par &eacute;tape</h2>
+
+    <h3>1. Configuration d'un parking</h3>
+    <p>On cr&eacute;e le parking (nom, soci&eacute;t&eacute;, adresse, nombre total de places) et on pr&eacute;cise s'il est <b>gratuit</b> ou <b>payant</b>. Le bouton &laquo;&nbsp;G&eacute;n&eacute;rer les places manquantes&nbsp;&raquo; cr&eacute;e automatiquement les places num&eacute;rot&eacute;es jusqu'au total indiqu&eacute;.</p>
+
+    <h3>2. Cr&eacute;ation d'une r&eacute;servation</h3>
+    <p>On choisit le parking, une place libre, le b&eacute;n&eacute;ficiaire (Personnel ou Client) et les dates. Sur un parking gratuit, aucun tarif n'est demand&eacute; ; sur un parking payant, le montant est calcul&eacute; automatiquement selon la tarification configur&eacute;e.</p>
+
+    <p><b>La tarification est enti&egrave;rement configurable :</b> chaque entreprise ou utilisateur peut d&eacute;finir les p&eacute;riodes et les modalit&eacute;s de tarification adapt&eacute;es &agrave; son fonctionnement. Les unit&eacute;s ou p&eacute;riodes de facturation peuvent ainsi &ecirc;tre configur&eacute;es selon les besoins du parking, sans imposer un fonctionnement unique.</p>
+
+    <h3>3. Confirmation</h3>
+    <p>Une fois confirm&eacute;e, la place passe &laquo;&nbsp;R&eacute;serv&eacute;e&nbsp;&raquo; et ne peut plus &ecirc;tre attribu&eacute;e &agrave; une autre r&eacute;servation confirm&eacute;e en m&ecirc;me temps.</p>
+
+    <h3>4. Facturation (parkings payants)</h3>
+    <p>Pour une r&eacute;servation Client sur un parking payant, le Manager cr&eacute;e la facture en un clic depuis la r&eacute;servation. Une facture client standard Odoo est g&eacute;n&eacute;r&eacute;e, avec la p&eacute;riode et la place r&eacute;serv&eacute;e en description de ligne.</p>
+
+    <h3>5. Paiement</h3>
+    <p>Le paiement s'encaisse normalement depuis la Facturation, avec les modes de paiement du syst&egrave;me : &eacute;critures comptables g&eacute;n&eacute;r&eacute;es automatiquement. D&egrave;s que la facture est r&eacute;gl&eacute;e (totalement ou partiellement), le statut de paiement de la r&eacute;servation se met &agrave; jour tout seul.</p>
+
+    <h3>6. Ticket et rapports de r&eacute;servation</h3>
+    <p>Un ticket imprimable reprend les informations essentielles de la r&eacute;servation : la soci&eacute;t&eacute;, le parking, la place, le b&eacute;n&eacute;ficiaire, le responsable, les dates, le statut de la r&eacute;servation et le statut de paiement (ou la mention &laquo;&nbsp;Parking gratuit&nbsp;&raquo;).</p>
+
+    <p>Le module permet &eacute;galement de g&eacute;n&eacute;rer des <b>rapports de r&eacute;servation d&eacute;taill&eacute;s</b> afin de retracer l'activit&eacute; du parking. Les rapports peuvent &ecirc;tre &eacute;tablis <b>sur une p&eacute;riode donn&eacute;e</b>, pour <b>un parking pr&eacute;cis</b> ou sous la forme d'un <b>rapport g&eacute;n&eacute;ral</b> regroupant l'ensemble des parkings.</p>
+
+    <p>Ces rapports permettent notamment de retrouver les r&eacute;servations, les clients ou b&eacute;n&eacute;ficiaires concern&eacute;s, le responsable du parking, les dates et heures de d&eacute;but et de fin, ainsi que l'&eacute;tat de chaque r&eacute;servation (<b>Brouillon, Confirm&eacute;e, Termin&eacute;e ou Annul&eacute;e</b>) et son statut de paiement (<b>Non pay&eacute;, Partiellement pay&eacute; ou Pay&eacute;</b>). Ils offrent ainsi une vision claire et tra&ccedil;able de l'historique des r&eacute;servations.</p>
+
+    <h3>7. Tableau de bord</h3>
+    <p>Une vue d'ensemble donne le taux d'occupation, la r&eacute;partition Personnel / Client et le montant total impay&eacute;, tous parkings confondus.</p>
+
+    <div align="center">
+        <img src="screenshots/dashboard.png" width="640" alt="Tableau de bord ADK Parking : parkings g&eacute;r&eacute;s, taux d'occupation, places libres, chiffre d'affaires et r&eacute;partition des places">
+    </div>
+
+    <hr>
+
+    <h2>Cycle de vie d'une r&eacute;servation</h2>
+
+    <div align="center">
+        <img src="diagrams/cycle-flow.png" width="480" alt="Sch&eacute;ma du cycle de vie : Brouillon, Confirm&eacute;, Termin&eacute;, avec annulation et retour possible en Brouillon">
+    </div>
+
+    <ul>
+        <li><b>Brouillon</b> &mdash; cr&eacute;&eacute;e, tout reste modifiable, la place n'est pas encore bloqu&eacute;e</li>
+        <li><b>Confirm&eacute;</b> &mdash; la place est r&eacute;serv&eacute;e ; possible de facturer (parking payant, client) ; peut &ecirc;tre annul&eacute;e ou repass&eacute;e en Brouillon</li>
+        <li><b>Termin&eacute;</b> &mdash; la r&eacute;servation est close</li>
+        <li><b>Annul&eacute;</b> &mdash; accessible depuis Brouillon ou Confirm&eacute; ; peut &ecirc;tre remise en Brouillon</li>
+    </ul>
+
+    <hr>
+
+    <h2>Facturation et paiement (Comptabilit&eacute;)</h2>
+
+    <p>Comme pour les modules Achats et Ventes, ADK Parking s'appuie sur la Facturation native d'Odoo plut&ocirc;t que de r&eacute;inventer une gestion de paiement &agrave; part.</p>
+
+    <ul>
+        <li>Une facture client standard (<i>account.move</i>) est cr&eacute;&eacute;e depuis la r&eacute;servation, avec le produit &laquo;&nbsp;R&eacute;servation de place de parking&nbsp;&raquo;</li>
+        <li>L'encaissement utilise les modes de paiement d&eacute;j&agrave; configur&eacute;s dans le syst&egrave;me (esp&egrave;ces, virement, carte, etc.)</li>
+        <li>Les &eacute;critures comptables sont g&eacute;n&eacute;r&eacute;es automatiquement, comme pour n'importe quelle facture Odoo</li>
+        <li>Le statut de paiement de la r&eacute;servation (Non pay&eacute; / Partiellement pay&eacute; / Pay&eacute;) se synchronise tout seul avec la facture</li>
+        <li>Un parking gratuit ne g&eacute;n&egrave;re jamais ni tarif, ni facture</li>
+    </ul>
+
+    <hr>
+
+    <h2>Fonctionnalit&eacute;s</h2>
+
+    <ol>
+        <li><b>Parkings gratuits ou payants</b> &mdash; chaque parking d&eacute;cide s'il facture ses places ou non</li>
+        <li><b>Gestion des places</b> &mdash; g&eacute;n&eacute;ration automatique, statut Libre / R&eacute;serv&eacute;e en temps r&eacute;el</li>
+        <li><b>R&eacute;servations Personnel et Client</b> &mdash; un seul mod&egrave;le, un comportement adapt&eacute; &agrave; chacun</li>
+        <li><b>Tarification configurable</b> &mdash; p&eacute;riodes et modalit&eacute;s de tarification adaptables aux besoins de chaque entreprise ou parking</li>
+        <li><b>Facturation int&eacute;gr&eacute;e</b> &mdash; factures et paiements natifs Odoo, &eacute;critures comptables automatiques</li>
+        <li><b>Tickets et rapports de r&eacute;servation</b> &mdash; documents imprimables et rapports par p&eacute;riode, par parking ou g&eacute;n&eacute;raux avec suivi des r&eacute;servations et des paiements</li>
+        <li><b>Tableau de bord</b> &mdash; occupation, r&eacute;partition Personnel/Client, montants impay&eacute;s</li>
+    </ol>
+
+    <p>Module natif Odoo 18, construit sur les applications Comptabilit&eacute;/Facturation (account) et Discuss (mail).</p>
+
+    <hr>
+
+    <!-- SUPPORT / AUTHOR -->
+    <div style="text-align:center; padding:30px; border-top:2px solid #eee;">
+
+        <h2 style="font-size:20px; color:#1B3B6F; margin-bottom:10px;">
+            Support et auteur
+        </h2>
+
+        <p style="color:#555; font-size:15px; margin:4px 0;">
+            <strong>Auteur :</strong> Kambeu Henang Ange Duval
+        </p>
+
+        <p style="color:#555; font-size:15px; margin:4px 0;">
+            <strong>Support :</strong>
+            <a href="mailto:duvalkambeu61@gmail.com">
+                duvalkambeu61@gmail.com
+            </a>
+        </p>
+
+        <p style="color:#888; font-size:13px; margin-top:16px;">
+            Une question, un bug, une demande d'&eacute;volution ?
+            <br>
+            Contactez-nous, nous r&eacute;pondons rapidement.
+        </p>
+
+    </div>
+
+</body>
+</html>
