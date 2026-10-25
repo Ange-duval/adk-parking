@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_adk_parking_place_list" model="ir.ui.view">
+        <field name="name">adk.parking.place.list</field>
+        <field name="model">adk.parking.place</field>
+        <field name="arch" type="xml">
+            <list string="Places" decoration-success="state == 'libre'" decoration-danger="state == 'reserve'"
+                  editable="bottom">
+                <field name="name"/>
+                <field name="parking_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'libre'"
+                       decoration-danger="state == 'reserve'"/>
+                <field name="current_partner_id"/>
+                <field name="current_user_type"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_adk_parking_place_form" model="ir.ui.view">
+        <field name="name">adk.parking.place.form</field>
+        <field name="model">adk.parking.place</field>
+        <field name="arch" type="xml">
+            <form string="Place de parking">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Ex: A-01"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="parking_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group>
+                            <field name="state" widget="badge"
+                                   decoration-success="state == 'libre'"
+                                   decoration-danger="state == 'reserve'"/>
+                            <field name="current_partner_id"/>
+                            <field name="current_user_type"/>
+                            <field name="current_reservation_id"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_adk_parking_place_kanban" model="ir.ui.view">
+        <field name="name">adk.parking.place.kanban</field>
+        <field name="model">adk.parking.place</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_small_column">
+                <field name="name"/>
+                <field name="state"/>
+                <field name="current_partner_id"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="oe_kanban_global_click p-2 text-center {{record.state.raw_value == 'libre' ? 'bg-success-subtle' : 'bg-danger-subtle'}}">
+                            <strong><field name="name"/></strong>
+                            <div class="text-muted small">
+                                <t t-if="record.state.raw_value == 'libre'">Libre</t>
+                                <t t-else=""><field name="current_partner_id"/></t>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_adk_parking_place_search" model="ir.ui.view">
+        <field name="name">adk.parking.place.search</field>
+        <field name="model">adk.parking.place</field>
+        <field name="arch" type="xml">
+            <search string="Places">
+                <field name="name"/>
+                <field name="parking_id"/>
+                <filter string="Libres" name="filter_libre" domain="[('state','=','libre')]"/>
+                <filter string="Réservées" name="filter_reserve" domain="[('state','=','reserve')]"/>
+                <group expand="0" string="Grouper par">
+                    <filter string="Parking" name="group_parking" context="{'group_by': 'parking_id'}"/>
+                    <filter string="Statut" name="group_state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_adk_parking_place" model="ir.actions.act_window">
+        <field name="name">Places</field>
+        <field name="res_model">adk.parking.place</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="search_view_id" ref="view_adk_parking_place_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Créez une place ou générez-les automatiquement depuis la fiche du parking
+            </p>
+        </field>
+    </record>
+
+</odoo>

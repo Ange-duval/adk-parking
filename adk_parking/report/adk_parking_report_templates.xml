@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="report_adk_parking_state">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="parking">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>Rapport d'état du parking : <span t-field="parking.name"/></h2>
+                        <p>Date d'édition : <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%d/%m/%Y %H:%M')"/></p>
+                        <table class="table table-sm table-bordered" style="width:60%;">
+                            <tr><td><strong>Société</strong></td><td><span t-field="parking.company_id.name"/></td></tr>
+                            <tr><td><strong>Localisation</strong></td><td>
+                                <span t-field="parking.district" t-if="parking.district"/><t t-if="parking.district">, </t>
+                                <span t-field="parking.city" t-if="parking.city"/><t t-if="parking.city and parking.country_id">, </t>
+                                <span t-field="parking.country_id.name" t-if="parking.country_id"/>
+                            </td></tr>
+                            <tr><td><strong>Responsable Parking</strong></td><td><span t-field="parking.responsible_id.name"/></td></tr>
+                            <tr><td><strong>Total places</strong></td><td><span t-field="parking.total_places"/></td></tr>
+                            <tr><td><strong>Places réservées</strong></td><td><span t-field="parking.reserved_places"/></td></tr>
+                            <tr><td><strong>Places disponibles</strong></td><td><span t-field="parking.available_places"/></td></tr>
+                            <tr><td><strong>Taux d'occupation</strong></td><td><span t-esc="round(parking.occupation_rate, 1)"/> %</td></tr>
+                            <tr><td><strong>Montant impayé (clients)</strong></td><td><span t-field="parking.amount_due"/></td></tr>
+                        </table>
+
+                        <h4 class="mt-4">Détail des réservations actives</h4>
+                        <table class="table table-sm table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Référence</th>
+                                    <th>Place</th>
+                                    <th>Type</th>
+                                    <th>Bénéficiaire</th>
+                                    <th>Début</th>
+                                    <th>Fin</th>
+                                    <th>Paiement</th>
+                                    <th>Montant</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="parking.reservation_ids.filtered(lambda r: r.state == 'confirmed')" t-as="res">
+                                    <tr>
+                                        <td><span t-field="res.name"/></td>
+                                        <td><span t-field="res.place_id"/></td>
+                                        <td><span t-field="res.user_type"/></td>
+                                        <td><span t-field="res.partner_id.name"/></td>
+                                        <td><span t-field="res.date_start"/></td>
+                                        <td><span t-field="res.date_end"/></td>
+                                        <td><span t-field="res.payment_status"/></td>
+                                        <td><span t-field="res.amount_total"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_adk_parking_unpaid">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <div class="page">
+                    <h2>Liste des paiements non soldés</h2>
+                    <p>Date d'édition : <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%d/%m/%Y %H:%M')"/></p>
+                    <table class="table table-sm table-striped">
+                        <thead>
+                            <tr>
+                                <th>Référence</th>
+                                <th>Parking</th>
+                                <th>Place</th>
+                                <th>Client</th>
+                                <th>Début</th>
+                                <th>Fin</th>
+                                <th>Tarification</th>
+                                <th>Montant dû</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="docs" t-as="res">
+                                <tr>
+                                    <td><span t-field="res.name"/></td>
+                                    <td><span t-field="res.parking_id.name"/></td>
+                                    <td><span t-field="res.place_id"/></td>
+                                    <td><span t-field="res.partner_id.name"/></td>
+                                    <td><span t-field="res.date_start"/></td>
+                                    <td><span t-field="res.date_end"/></td>
+                                    <td><span t-field="res.tariff_type_id.name"/></td>
+                                    <td><span t-field="res.amount_total"/></td>
+                                </tr>
+                            </t>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="7" class="text-end"><strong>Total</strong></td>
+                                <td><strong t-out="sum(docs.mapped('amount_total'))" t-options="{'widget': 'monetary', 'display_currency': docs[0].currency_id}"/></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_adk_parking_by_period">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <div class="page" style="font-family:Arial,Helvetica,sans-serif;">
+
+                    <div style="border-radius:14px;background-color:#714b67;color:#ffffff;padding:22px 28px;margin-bottom:22px;">
+                        <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;opacity:1;">Rapport</div>
+                        <div style="font-size:22px;font-weight:bold;margin-top:2px;">Réservations par période</div>
+                        <div style="font-size:13px;margin-top:10px;opacity:1;">
+                            Du <span t-esc="date_from"/> au <span t-esc="date_to"/>
+                            <t t-if="parking"> — Parking : <span t-field="parking.name"/></t>
+                            <t t-else=""> — Tous les parkings</t>
+                        </div>
+                    </div>
+
+                    <t t-set="parkings" t-value="docs.mapped('parking_id')"/>
+
+                    <div t-if="not docs" style="text-align:center;color:#4a454c;padding:40px 0;font-size:14px;">
+                        Aucune réservation sur cette période.
+                    </div>
+
+                    <t t-foreach="parkings" t-as="prk">
+                        <h4 style="color:#714b67;border-bottom:1.5px solid #e6e1e6;padding-bottom:6px;margin-top:26px;">
+                            <span t-field="prk.name"/>
+                        </h4>
+
+                        <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:10px;">
+                            <thead>
+                                <tr style="background-color:#faf9fb;">
+                                    <th style="padding:8px 6px;text-align:left;border-bottom:1.5px solid #e6e1e6;">Référence</th>
+                                    <th style="padding:8px 6px;text-align:left;border-bottom:1.5px solid #e6e1e6;">Début</th>
+                                    <th style="padding:8px 6px;text-align:left;border-bottom:1.5px solid #e6e1e6;">Fin</th>
+                                    <th style="padding:8px 6px;text-align:left;border-bottom:1.5px solid #e6e1e6;">Bénéficiaire</th>
+                                    <th style="padding:8px 6px;text-align:left;border-bottom:1.5px solid #e6e1e6;">Type</th>
+                                    <th style="padding:8px 6px;text-align:left;border-bottom:1.5px solid #e6e1e6;">Responsable Parking</th>
+                                    <th style="padding:8px 6px;text-align:center;border-bottom:1.5px solid #e6e1e6;">Statut</th>
+                                    <th style="padding:8px 6px;text-align:center;border-bottom:1.5px solid #e6e1e6;">Paiement</th>
+                                    <th style="padding:8px 6px;text-align:right;border-bottom:1.5px solid #e6e1e6;">Montant</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="docs.filtered(lambda r: r.parking_id == prk)" t-as="res">
+                                    <tr t-attf-style="background-color:#{'#faf9fa' if res_index % 2 else '#ffffff'};">
+                                        <td style="padding:7px 6px;"><span t-field="res.name"/></td>
+                                        <td style="padding:7px 6px;"><span t-field="res.date_start"/></td>
+                                        <td style="padding:7px 6px;"><span t-field="res.date_end"/></td>
+                                        <td style="padding:7px 6px;"><span t-field="res.partner_id.name"/></td>
+                                        <td style="padding:7px 6px;">
+                                            <span t-if="res.user_type == 'client'">Client</span>
+                                            <span t-else="">Personnel</span>
+                                        </td>
+                                        <td style="padding:7px 6px;"><span t-field="res.responsible_id.name"/></td>
+                                        <td style="padding:7px 6px;text-align:center;">
+                                            <span t-if="res.state == 'draft'" style="display:inline-block;background-color:#fbe9c9;color:#8a5a00;border-radius:999px;padding:2px 10px;font-size:11px;font-weight:bold;">Brouillon</span>
+                                            <span t-elif="res.state == 'confirmed'" style="display:inline-block;background-color:#d8ecdf;color:#1c6b3d;border-radius:999px;padding:2px 10px;font-size:11px;font-weight:bold;">En cours</span>
+                                            <span t-elif="res.state == 'done'" style="display:inline-block;background-color:#e5e1e6;color:#4a3f4a;border-radius:999px;padding:2px 10px;font-size:11px;font-weight:bold;">Terminée</span>
+                                        </td>
+                                        <td style="padding:7px 6px;text-align:center;">
+                                            <span t-if="res.user_type == 'employee'" style="color:#4a454c;">—</span>
+                                            <span t-elif="res.is_free" style="color:#1c4e8a;font-weight:bold;">Gratuit</span>
+                                            <span t-elif="res.payment_status == 'paid'" style="display:inline-block;background-color:#d8ecdf;color:#1c6b3d;border-radius:999px;padding:2px 10px;font-size:11px;font-weight:bold;">Payé</span>
+                                            <span t-elif="res.payment_status == 'partial'" style="display:inline-block;background-color:#fbe9c9;color:#8a5a00;border-radius:999px;padding:2px 10px;font-size:11px;font-weight:bold;">Partiel</span>
+                                            <span t-else="" style="display:inline-block;background-color:#f6d9d9;color:#a33a3a;border-radius:999px;padding:2px 10px;font-size:11px;font-weight:bold;">Non payé</span>
+                                        </td>
+                                        <td style="padding:7px 6px;text-align:right;font-weight:bold;">
+                                            <span t-if="res.user_type == 'client' and not res.is_free" t-field="res.amount_total"/>
+                                            <span t-else="" style="color:#4a454c;font-weight:normal;">—</span>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </t>
+
+                    <div style="margin-top:22px;padding-top:14px;border-top:2px solid #714b67;text-align:right;">
+                        <span style="font-size:13px;color:#3d3842;">Total sur la période&#160;: </span>
+                        <span style="font-size:17px;font-weight:bold;color:#714b67;" t-esc="total_amount"
+                              t-options="{'widget': 'monetary', 'display_currency': docs[:1].currency_id if docs else res_company.currency_id}"/>
+                    </div>
+
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_adk_parking_ticket">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="res">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <div style="max-width:420px;margin:24px auto 0;border:1.5px solid #e6e1e6;border-radius:16px;overflow:hidden;font-family:Arial,Helvetica,sans-serif;">
+
+                            <div style="background-color:#714b67;color:#ffffff;padding:18px 24px;text-align:center;">
+                                <div style="width:44px;height:44px;line-height:44px;border-radius:50%;background-color:#ffffff;color:#714b67;font-weight:bold;font-size:16px;margin:0 auto 8px;">
+                                    <span t-field="res.company_initials"/>
+                                </div>
+                                <div style="font-size:15px;font-weight:bold;"><span t-field="res.company_id.name"/></div>
+                                <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;opacity:1;margin-top:6px;">Ticket de réservation</div>
+                                <div style="font-size:20px;font-weight:bold;margin-top:2px;"><span t-field="res.name"/></div>
+                            </div>
+
+                            <div style="padding:20px 26px;">
+
+                                <div style="text-align:center;margin-bottom:16px;">
+                                    <span t-if="res.state == 'confirmed'" style="display:inline-block;background-color:#d8ecdf;color:#1c6b3d;border-radius:999px;padding:6px 18px;font-weight:bold;font-size:13px;">
+                                        RÉSERVÉ
+                                    </span>
+                                    <span t-elif="res.state == 'done'" style="display:inline-block;background-color:#e5e1e6;color:#4a3f4a;border-radius:999px;padding:6px 18px;font-weight:bold;font-size:13px;">
+                                        TERMINÉ
+                                    </span>
+                                    <span t-elif="res.state == 'cancelled'" style="display:inline-block;background-color:#f6d9d9;color:#a33a3a;border-radius:999px;padding:6px 18px;font-weight:bold;font-size:13px;">
+                                        ANNULÉ
+                                    </span>
+                                    <span t-else="" style="display:inline-block;background-color:#fbe9c9;color:#8a5a00;border-radius:999px;padding:6px 18px;font-weight:bold;font-size:13px;">
+                                        BROUILLON
+                                    </span>
+                                </div>
+
+                                <table style="width:100%;border-collapse:collapse;font-size:13.5px;">
+                                    <tr>
+                                        <td style="padding:6px 0;color:#4a454c;width:42%;">Parking</td>
+                                        <td style="padding:6px 0;font-weight:bold;text-align:right;"><span t-field="res.parking_id.name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:6px 0;color:#4a454c;">Place</td>
+                                        <td style="padding:6px 0;font-weight:bold;text-align:right;"><span t-field="res.place_id.name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:6px 0;color:#4a454c;" t-if="res.user_type == 'client'">Client</td>
+                                        <td style="padding:6px 0;color:#4a454c;" t-else="">Personnel</td>
+                                        <td style="padding:6px 0;font-weight:bold;text-align:right;"><span t-field="res.partner_id.name"/></td>
+                                    </tr>
+                                    <tr t-if="res.vehicle_plate">
+                                        <td style="padding:6px 0;color:#4a454c;">Véhicule</td>
+                                        <td style="padding:6px 0;font-weight:bold;text-align:right;"><span t-field="res.vehicle_plate"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:6px 0;color:#4a454c;border-top:1px dashed #e6e1e6;">Début</td>
+                                        <td style="padding:6px 0;font-weight:bold;text-align:right;border-top:1px dashed #e6e1e6;"><span t-field="res.date_start"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:6px 0;color:#4a454c;">Fin</td>
+                                        <td style="padding:6px 0;font-weight:bold;text-align:right;"><span t-field="res.date_end"/></td>
+                                    </tr>
+                                </table>
+
+                                <div style="margin-top:16px;padding-top:14px;border-top:1px dashed #e6e1e6;">
+                                    <!-- Le Personnel ne paie jamais : aucune mention de paiement sur son ticket -->
+                                    <div t-if="res.user_type == 'employee'" style="text-align:center;">
+                                        <span style="display:inline-block;background-color:#e5e1e6;color:#4a3f4a;border-radius:999px;padding:6px 18px;font-weight:bold;font-size:13px;">
+                                            ACCÈS PERSONNEL
+                                        </span>
+                                    </div>
+                                    <div t-elif="res.parking_id.is_free" style="text-align:center;">
+                                        <span style="display:inline-block;background-color:#d8e7f5;color:#1c4e8a;border-radius:999px;padding:6px 18px;font-weight:bold;font-size:13px;">
+                                            PARKING GRATUIT
+                                        </span>
+                                    </div>
+                                    <t t-else="">
+                                        <table style="width:100%;border-collapse:collapse;font-size:13.5px;">
+                                            <tr>
+                                                <td style="padding:4px 0;color:#4a454c;">Montant</td>
+                                                <td style="padding:4px 0;font-weight:bold;text-align:right;"><span t-field="res.amount_total"/></td>
+                                            </tr>
+                                        </table>
+                                        <div style="text-align:center;margin-top:8px;">
+                                            <span t-if="res.payment_status == 'paid'" style="display:inline-block;background-color:#d8ecdf;color:#1c6b3d;border-radius:999px;padding:5px 16px;font-weight:bold;font-size:12.5px;">
+                                                PAYÉ
+                                            </span>
+                                            <span t-elif="res.payment_status == 'partial'" style="display:inline-block;background-color:#fbe9c9;color:#8a5a00;border-radius:999px;padding:5px 16px;font-weight:bold;font-size:12.5px;">
+                                                PARTIELLEMENT PAYÉ
+                                            </span>
+                                            <span t-else="" style="display:inline-block;background-color:#f6d9d9;color:#a33a3a;border-radius:999px;padding:5px 16px;font-weight:bold;font-size:12.5px;">
+                                                NON PAYÉ
+                                            </span>
+                                        </div>
+                                    </t>
+                                </div>
+
+                            </div>
+
+                            <div style="background-color:#faf9fb;text-align:center;padding:10px;font-size:11px;color:#4a454c;border-top:1px solid #e6e1e6;">
+                                Merci de conserver ce ticket pour toute vérification sur place.
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_adk_parking_tariff_type_list" model="ir.ui.view">
+        <field name="name">adk.parking.tariff.type.list</field>
+        <field name="model">adk.parking.tariff.type</field>
+        <field name="arch" type="xml">
+            <list string="Types de tarification" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="unit_days"/>
+                <field name="active" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_adk_parking_tariff_type_form" model="ir.ui.view">
+        <field name="name">adk.parking.tariff.type.form</field>
+        <field name="model">adk.parking.tariff.type</field>
+        <field name="arch" type="xml">
+            <form string="Type de tarification">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="unit_days"/>
+                        <field name="sequence"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_adk_parking_tariff_type" model="ir.actions.act_window">
+        <field name="name">Types de tarification</field>
+        <field name="res_model">adk.parking.tariff.type</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'active_test': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Créez un type de tarification
+            </p>
+            <p>
+                Un type de tarification définit à combien de jours correspond une unité de tarif
+                (ex : 1 jour pour "Par jour", 7 pour "Par semaine", 30 pour "Par mois", 365 pour "Par an").
+                Vous pouvez en ajouter, renommer ou désactiver librement.
+            </p>
+        </field>
+    </record>
+
+</odoo>

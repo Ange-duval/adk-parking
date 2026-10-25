@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_adk_parking_list" model="ir.ui.view">
+        <field name="name">adk.parking.list</field>
+        <field name="model">adk.parking</field>
+        <field name="arch" type="xml">
+            <list string="Parkings" decoration-danger="occupation_rate &gt;= 95">
+                <field name="name"/>
+                <field name="code" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="city" optional="show"/>
+                <field name="country_id" optional="show"/>
+                <field name="responsible_id" optional="show"/>
+                <field name="is_free" optional="show"/>
+                <field name="total_places"/>
+                <field name="reserved_places"/>
+                <field name="available_places"/>
+                <field name="occupation_rate" widget="progressbar"/>
+                <field name="revenue_total" widget="monetary" optional="show"/>
+                <field name="amount_due" widget="monetary" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_adk_parking_form" model="ir.ui.view">
+        <field name="name">adk.parking.form</field>
+        <field name="model">adk.parking</field>
+        <field name="arch" type="xml">
+            <form string="Parking">
+                <header>
+                    <button name="action_generate_places" string="Générer les places manquantes"
+                            type="object" class="btn-primary"
+                            invisible="place_count &gt;= total_places"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_places" type="object" class="oe_stat_button" icon="fa-th-large">
+                            <field name="place_count" widget="statinfo" string="Places"/>
+                        </button>
+                    </div>
+                    <field name="image_1920" widget="image" class="oe_avatar"
+                           options="{'preview_image': 'image_128', 'size': [90, 90]}"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Nom du parking"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="responsible_id"/>
+                            <field name="is_free"/>
+                        </group>
+                        <group string="Localisation">
+                            <field name="country_id"/>
+                            <field name="city"/>
+                            <field name="district"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="total_places"/>
+                            <field name="reserved_places"/>
+                            <field name="available_places"/>
+                            <field name="occupation_rate" widget="progressbar"/>
+                        </group>
+                    </group>
+                    <group string="Répartition">
+                        <group>
+                            <field name="reserved_employee"/>
+                            <field name="reserved_client"/>
+                        </group>
+                        <group>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="revenue_total" widget="monetary"/>
+                            <field name="amount_due" widget="monetary"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Places">
+                            <field name="place_ids" context="{'default_parking_id': id}">
+                                <list editable="bottom" decoration-success="state == 'libre'" decoration-danger="state == 'reserve'">
+                                    <field name="name"/>
+                                    <field name="state" widget="badge"
+                                           decoration-success="state == 'libre'"
+                                           decoration-danger="state == 'reserve'"/>
+                                    <field name="current_partner_id"/>
+                                    <field name="current_user_type"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Réservations">
+                            <field name="reservation_ids" context="{'default_parking_id': id}">
+                                <list decoration-muted="state == 'cancelled'" decoration-success="state == 'confirmed'">
+                                    <field name="name"/>
+                                    <field name="place_id"/>
+                                    <field name="user_type"/>
+                                    <field name="partner_id"/>
+                                    <field name="date_start"/>
+                                    <field name="date_end"/>
+                                    <field name="payment_status"/>
+                                    <field name="amount_total" widget="monetary"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_adk_parking_kanban" model="ir.ui.view">
+        <field name="name">adk.parking.kanban</field>
+        <field name="model">adk.parking</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_small_column">
+                <field name="name"/>
+                <field name="image_128"/>
+                <field name="total_places"/>
+                <field name="reserved_places"/>
+                <field name="available_places"/>
+                <field name="occupation_rate"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_global_click">
+                            <div class="o_kanban_image_fill_left d-flex">
+                                <img t-att-src="'/web/image/adk.parking/' + record.id.raw_value + '/image_128'"
+                                     alt="Parking"
+                                     class="o_kanban_image_fill o_image_64_cover"
+                                     style="width:64px;height:64px;object-fit:cover;border-radius:6px;flex-shrink:0;"/>
+                                <div class="p-2 flex-grow-1 min-w-0">
+                                    <strong><field name="name"/></strong>
+                                    <div class="text-muted">
+                                        <field name="available_places"/> places libres / <field name="total_places"/>
+                                    </div>
+                                    <div class="progress mt-1" style="height:6px;">
+                                        <div t-attf-class="progress-bar {{record.occupation_rate.raw_value &gt;= 90 ? 'bg-danger' : record.occupation_rate.raw_value &gt;= 60 ? 'bg-warning' : 'bg-success'}}"
+                                             t-attf-style="width: {{record.occupation_rate.raw_value}}%"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_adk_parking_search" model="ir.ui.view">
+        <field name="name">adk.parking.search</field>
+        <field name="model">adk.parking</field>
+        <field name="arch" type="xml">
+            <search string="Parkings">
+                <field name="name"/>
+                <field name="company_id"/>
+                <filter string="Presque plein (&gt;=90%)" name="near_full"
+                        domain="[('occupation_rate', '&gt;=', 90)]"/>
+                <group expand="0" string="Grouper par">
+                    <filter string="Société" name="group_company" context="{'group_by': 'company_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_adk_parking" model="ir.actions.act_window">
+        <field name="name">Parkings</field>
+        <field name="res_model">adk.parking</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="search_view_id" ref="view_adk_parking_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Créez votre premier parking
+            </p>
+        </field>
+    </record>
+
+</odoo>
