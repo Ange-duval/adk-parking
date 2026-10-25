@@ -1,0 +1,10 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_adk_parking_user,adk.parking.user,model_adk_parking,group_adk_parking_user,1,1,1,0
+access_adk_parking_manager,adk.parking.manager,model_adk_parking,group_adk_parking_manager,1,1,1,1
+access_adk_parking_place_user,adk.parking.place.user,model_adk_parking_place,group_adk_parking_user,1,1,1,0
+access_adk_parking_place_manager,adk.parking.place.manager,model_adk_parking_place,group_adk_parking_manager,1,1,1,1
+access_adk_parking_reservation_user,adk.parking.reservation.user,model_adk_parking_reservation,group_adk_parking_user,1,1,1,0
+access_adk_parking_reservation_manager,adk.parking.reservation.manager,model_adk_parking_reservation,group_adk_parking_manager,1,1,1,1
+access_adk_parking_tariff_type_user,adk.parking.tariff.type.user,model_adk_parking_tariff_type,group_adk_parking_user,1,0,0,0
+access_adk_parking_tariff_type_manager,adk.parking.tariff.type.manager,model_adk_parking_tariff_type,group_adk_parking_manager,1,1,1,1
+access_adk_parking_report_wizard_user,adk.parking.report.wizard.user,model_adk_parking_report_wizard,group_adk_parking_user,1,1,1,1

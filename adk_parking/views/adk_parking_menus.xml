@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem id="menu_adk_parking_root" name="ADK Parking" sequence="10"
+              web_icon="adk_parking,static/description/icon.png"/>
+
+    <menuitem id="menu_adk_parking_dashboard" name="Tableau de bord"
+              parent="menu_adk_parking_root" sequence="1"
+              action="action_adk_parking_dashboard"/>
+
+    <menuitem id="menu_adk_parking_operations" name="Opérations"
+              parent="menu_adk_parking_root" sequence="10"/>
+
+    <menuitem id="menu_adk_parking_reservations" name="Réservations"
+              parent="menu_adk_parking_operations" sequence="10"
+              action="action_adk_parking_reservation"/>
+
+    <menuitem id="menu_adk_parking_unpaid" name="Paiements en attente"
+              parent="menu_adk_parking_operations" sequence="20"
+              action="action_adk_parking_reservation_unpaid"/>
+
+    <menuitem id="menu_adk_parking_reports" name="Rapports"
+              parent="menu_adk_parking_root" sequence="20"/>
+
+    <menuitem id="menu_adk_parking_report_by_period" name="Réservations par période"
+              parent="menu_adk_parking_reports" sequence="10"
+              action="action_adk_parking_report_wizard"/>
+
+    <menuitem id="menu_adk_parking_config" name="Configuration"
+              parent="menu_adk_parking_root" sequence="30"
+              groups="adk_parking.group_adk_parking_manager"/>
+
+    <menuitem id="menu_adk_parking_parkings" name="Parkings"
+              parent="menu_adk_parking_config" sequence="10"
+              action="action_adk_parking"/>
+
+    <menuitem id="menu_adk_parking_places" name="Places"
+              parent="menu_adk_parking_config" sequence="20"
+              action="action_adk_parking_place"/>
+
+    <menuitem id="menu_adk_parking_tariff_type" name="Types de tarification"
+              parent="menu_adk_parking_config" sequence="30"
+              action="action_adk_parking_tariff_type"/>
+
+</odoo>

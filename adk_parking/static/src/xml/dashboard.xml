@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="adk_parking.Dashboard">
+  <div class="adk_pk">
+    <div class="adk_pk_inner">
+
+      <header class="adk_head">
+        <div>
+          <h1 class="adk_title">Tableau de bord Parking</h1>
+          <p class="adk_sub">Toute l'activité de vos parkings en un coup d'œil<t t-if="state.data"> · mis à jour le <t t-esc="state.data.today"/></t></p>
+        </div>
+        <div class="adk_filters">
+          <div class="adk_pills">
+            <t t-foreach="periods" t-as="p" t-key="p.key">
+              <button type="button" t-attf-class="adk_pill {{ state.period === p.key ? 'on' : '' }}" t-on-click="() => this.setPeriod(p.key)"><t t-esc="p.label"/></button>
+            </t>
+          </div>
+        </div>
+      </header>
+
+      <t t-if="state.data">
+        <t t-set="k" t-value="state.data.kpis"/>
+
+        <div class="adk_sel">
+          <button type="button" t-attf-class="adk_pill {{ !state.parking ? 'on' : '' }}" t-on-click="() => this.setParking(0)">Tous les parkings</button>
+          <t t-foreach="state.data.parkings_all" t-as="pk" t-key="pk.id">
+            <button type="button" t-attf-class="adk_pill {{ state.parking === pk.id ? 'on' : '' }}" t-on-click="() => this.setParking(pk.id)"><t t-esc="pk.name"/></button>
+          </t>
+        </div>
+
+        <!-- ===== Indicateurs clés ===== -->
+        <section class="adk_kpis">
+          <div class="adk_kpi adk_hero">
+            <svg viewBox="0 0 130 130" class="adk_ring">
+              <circle cx="65" cy="65" r="54" class="adk_ring_bg"/>
+              <circle cx="65" cy="65" r="54" class="adk_ring_fg" t-att-stroke-dasharray="ringDash" transform="rotate(-90 65 65)"/>
+              <text x="65" y="70" text-anchor="middle" class="adk_ring_txt"><t t-esc="k.occupation"/>%</text>
+            </svg>
+            <div>
+              <div class="adk_kpi_label">Taux d'occupation</div>
+              <div class="adk_kpi_note"><t t-esc="k.reserved_places"/> places occupées sur <t t-esc="k.total_places"/></div>
+            </div>
+          </div>
+          <div class="adk_kpi adk_click" t-on-click="openParkings">
+            <div class="adk_kpi_icon" style="background:#e8f5ee;color:#5fae88;"><i class="fa fa-product-hunt"/></div>
+            <div class="adk_kpi_val"><t t-esc="k.available_places"/></div>
+            <div class="adk_kpi_label">Places libres</div>
+            <div class="adk_kpi_note"><t t-esc="k.parkings"/> parking<t t-if="k.parkings > 1">s</t> suivi<t t-if="k.parkings > 1">s</t></div>
+          </div>
+          <div class="adk_kpi adk_click" t-on-click="() => this.openRes('Réservations', [])">
+            <div class="adk_kpi_icon" style="background:#efe8f6;color:#8f73a3;"><i class="fa fa-calendar-check-o"/></div>
+            <div class="adk_kpi_val"><t t-esc="k.reservations"/></div>
+            <div class="adk_kpi_label">Réservations</div>
+            <div class="adk_kpi_note"><t t-esc="k.confirmed"/> en cours · <t t-esc="k.done"/> terminées</div>
+          </div>
+          <div class="adk_kpi adk_click" t-on-click="() => this.openRes('Réservations payées', [['user_type','=','client'],['payment_status','=','paid'],['state','!=','cancelled']])">
+            <div class="adk_kpi_icon" style="background:#e8f2fb;color:#5a9bcc;"><i class="fa fa-money"/></div>
+            <div class="adk_kpi_val adk_money"><t t-esc="short(k.revenue)"/></div>
+            <div class="adk_kpi_label">Chiffre d'affaires encaissé</div>
+            <div class="adk_kpi_note"><t t-esc="money(k.revenue)"/></div>
+          </div>
+          <div class="adk_kpi adk_click" t-on-click="openUnpaid">
+            <div class="adk_kpi_icon" style="background:#fff3e6;color:#e5a463;"><i class="fa fa-hourglass-half"/></div>
+            <div class="adk_kpi_val adk_money"><t t-esc="short(k.due)"/></div>
+            <div class="adk_kpi_label">Paiements en attente</div>
+            <div class="adk_kpi_note"><t t-esc="k.due_count"/> réservation<t t-if="k.due_count > 1">s</t> · <t t-esc="money(k.due)"/></div>
+          </div>
+        </section>
+
+        <!-- ===== Évolution + occupation ===== -->
+        <section class="adk_grid adk_g2">
+          <div class="adk_card">
+            <h3 class="adk_card_t">Activité sur 6 mois</h3>
+            <p class="adk_card_s">Réservations (barres) et chiffre d'affaires encaissé (courbe)</p>
+            <t t-set="c" t-value="chart"/>
+            <svg t-att-viewBox="'0 0 ' + c.W + ' ' + c.H" class="adk_chart">
+              <line x1="20" t-att-x2="c.W - 12" t-att-y1="c.base" t-att-y2="c.base" class="adk_grid_line"/>
+              <t t-foreach="c.bars" t-as="b" t-key="b_index">
+                <rect t-att-x="b.x" t-att-y="b.y" t-att-width="b.w" t-att-height="b.h" rx="8" class="adk_bar"/>
+                <text t-att-x="b.cx" t-att-y="c.H - 12" text-anchor="middle" class="adk_axis"><t t-esc="b.label"/></text>
+                <text t-if="b.value" t-att-x="b.cx" t-att-y="c.base - b.h - 6" text-anchor="middle" class="adk_val"><t t-esc="b.value"/></text>
+              </t>
+              <polyline t-if="c.drawn.length > 1" t-att-points="c.line" class="adk_line"/>
+              <t t-foreach="c.drawn" t-as="p" t-key="p_index">
+                <circle t-att-cx="p.x" t-att-cy="p.y" r="5" class="adk_dot"/>
+                <text t-att-x="p.x" t-att-y="p.y - 11" text-anchor="middle" class="adk_val" style="fill:#4f9d7c;"><t t-esc="p.label"/></text>
+              </t>
+            </svg>
+            <div class="adk_legend">
+              <span><i style="background:#d9cbe6"/> Réservations</span>
+              <span><i style="background:#7cc6a4"/> CA encaissé</span>
+            </div>
+          </div>
+
+          <div class="adk_card">
+            <h3 class="adk_card_t">Occupation par parking</h3>
+            <p class="adk_card_s">Places occupées par rapport à la capacité</p>
+            <t t-if="state.data.by_parking.length">
+              <div class="adk_rows">
+                <t t-foreach="state.data.by_parking" t-as="s" t-key="s.id">
+                  <div class="adk_row adk_click" t-on-click="() => this.openRecord('adk.parking', s.id)" style="padding:0;">
+                    <div class="adk_row_h"><span><t t-esc="s.name"/> <span t-if="s.free" class="adk_free">gratuit</span></span><b><t t-esc="s.rate"/>%</b></div>
+                    <div class="adk_track"><div class="adk_fill" t-att-style="'width:' + s.rate + '%;background:' + barColor(s.rate)"/></div>
+                    <div class="adk_row_n"><t t-esc="s.reserved"/> / <t t-esc="s.total"/> places<t t-if="s.city"> · <t t-esc="s.city"/></t><t t-if="s.district">, <t t-esc="s.district"/></t></div>
+                  </div>
+                </t>
+              </div>
+            </t>
+            <div t-else="" class="adk_empty">Aucun parking enregistré.</div>
+          </div>
+        </section>
+
+        <!-- ===== 3 répartitions ===== -->
+        <section class="adk_grid adk_g3">
+          <div class="adk_card adk_click" t-on-click="openParkings">
+            <h3 class="adk_card_t">Répartition des places</h3>
+            <div class="adk_donut_wrap">
+              <svg viewBox="0 0 130 130" class="adk_donut">
+                <circle cx="65" cy="65" r="54" class="adk_ring_bg"/>
+                <t t-foreach="placesDonut" t-as="d" t-key="d.key">
+                  <circle t-if="d.value" cx="65" cy="65" r="54" class="adk_seg" t-att-stroke="d.color" t-att-stroke-dasharray="d.dash" t-att-stroke-dashoffset="d.offset" transform="rotate(-90 65 65)"/>
+                </t>
+                <text x="65" y="63" text-anchor="middle" class="adk_dn"><t t-esc="k.available_places"/></text>
+                <text x="65" y="80" text-anchor="middle" class="adk_dl">places libres</text>
+              </svg>
+              <ul class="adk_ul">
+                <t t-foreach="placesDonut" t-as="d" t-key="d.key">
+                  <li><i t-att-style="'background:' + d.color"/><span><t t-esc="d.label"/></span><b><t t-esc="d.value"/></b></li>
+                </t>
+              </ul>
+            </div>
+          </div>
+          <div class="adk_card adk_click" t-on-click="() => this.openRes('Réservations', [])">
+            <h3 class="adk_card_t">Statut des réservations</h3>
+            <div class="adk_donut_wrap">
+              <svg viewBox="0 0 130 130" class="adk_donut">
+                <circle cx="65" cy="65" r="54" class="adk_ring_bg"/>
+                <t t-foreach="stateDonut" t-as="d" t-key="d.key">
+                  <circle t-if="d.value" cx="65" cy="65" r="54" class="adk_seg" t-att-stroke="d.color" t-att-stroke-dasharray="d.dash" t-att-stroke-dashoffset="d.offset" transform="rotate(-90 65 65)"/>
+                </t>
+                <text x="65" y="63" text-anchor="middle" class="adk_dn"><t t-esc="k.reservations"/></text>
+                <text x="65" y="80" text-anchor="middle" class="adk_dl">réservations</text>
+              </svg>
+              <ul class="adk_ul">
+                <t t-foreach="stateDonut" t-as="d" t-key="d.key">
+                  <li><i t-att-style="'background:' + d.color"/><span><t t-esc="d.label"/></span><b><t t-esc="d.value"/></b></li>
+                </t>
+              </ul>
+            </div>
+          </div>
+          <div class="adk_card adk_click" t-on-click="openUnpaid">
+            <h3 class="adk_card_t">Paiements clients</h3>
+            <div class="adk_donut_wrap">
+              <svg viewBox="0 0 130 130" class="adk_donut">
+                <circle cx="65" cy="65" r="54" class="adk_ring_bg"/>
+                <t t-foreach="payDonut" t-as="d" t-key="d.key">
+                  <circle t-if="d.value" cx="65" cy="65" r="54" class="adk_seg" t-att-stroke="d.color" t-att-stroke-dasharray="d.dash" t-att-stroke-dashoffset="d.offset" transform="rotate(-90 65 65)"/>
+                </t>
+                <text x="65" y="63" text-anchor="middle" class="adk_dn"><t t-esc="k.collect_rate"/>%</text>
+                <text x="65" y="80" text-anchor="middle" class="adk_dl">encaissées</text>
+              </svg>
+              <ul class="adk_ul">
+                <t t-foreach="payDonut" t-as="d" t-key="d.key">
+                  <li><i t-att-style="'background:' + d.color"/><span><t t-esc="d.label"/></span><b><t t-esc="d.value"/></b></li>
+                </t>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== Listes ===== -->
+        <section class="adk_grid adk_g2">
+          <div class="adk_card">
+            <h3 class="adk_card_t">Réservations en cours</h3>
+            <p class="adk_card_s">Prochaines fins de réservation · cliquez pour ouvrir</p>
+            <t t-if="state.data.current.length">
+              <t t-foreach="state.data.current" t-as="r" t-key="r.id">
+                <div class="adk_item adk_click" t-on-click="() => this.openRecord('adk.parking.reservation', r.id)">
+                  <div class="adk_dot_c" t-att-style="'background:' + (r.kind === 'Personnel' ? '#8ec1e6' : '#f2c48c')"/>
+                  <div class="adk_item_main">
+                    <div class="adk_item_t"><t t-esc="r.who"/></div>
+                    <div class="adk_item_s"><span class="adk_tag"><t t-esc="r.place"/></span><span><t t-esc="r.parking"/></span><span t-if="r.plate"><t t-esc="r.plate"/></span></div>
+                  </div>
+                  <div class="adk_item_side"><span style="font-size:12.5px;color:#9a91a3;">jusqu'au <t t-esc="r.end"/></span></div>
+                </div>
+              </t>
+            </t>
+            <div t-else="" class="adk_empty">Aucune réservation en cours.</div>
+          </div>
+
+          <div class="adk_card">
+            <h3 class="adk_card_t">Paiements en attente</h3>
+            <p class="adk_card_s">Réservations clients à encaisser</p>
+            <t t-if="state.data.unpaid.length">
+              <t t-foreach="state.data.unpaid" t-as="u" t-key="u.id">
+                <div class="adk_item adk_click" t-on-click="() => this.openRecord('adk.parking.reservation', u.id)">
+                  <div class="adk_dot_c" style="background:#f2c48c;"/>
+                  <div class="adk_item_main">
+                    <div class="adk_item_t"><t t-esc="u.who"/></div>
+                    <div class="adk_item_s"><span class="adk_tag"><t t-esc="u.name"/></span><span><t t-esc="u.parking"/></span><span>depuis le <t t-esc="u.start"/></span></div>
+                  </div>
+                  <div class="adk_item_side"><span class="adk_amt"><t t-esc="money(u.amount)"/></span></div>
+                </div>
+              </t>
+            </t>
+            <div t-else="" class="adk_empty">Aucun paiement en attente 🎉</div>
+          </div>
+        </section>
+
+        <!-- ===== Clients et tarifs ===== -->
+        <section class="adk_grid adk_g2">
+          <div class="adk_card">
+            <h3 class="adk_card_t">Meilleurs clients</h3>
+            <p class="adk_card_s">Par montant réservé</p>
+            <div class="adk_table">
+              <div class="adk_tr adk_th"><div>Client</div><div>Réservations</div><div>Montant</div><div>Encaissé</div></div>
+              <t t-foreach="state.data.top_clients" t-as="c" t-key="c.name">
+                <div class="adk_tr">
+                  <div class="adk_who"><span class="adk_avatar"><t t-esc="initials(c.name)"/></span><t t-esc="c.name"/></div>
+                  <div><t t-esc="c.count"/></div>
+                  <div class="adk_amt"><t t-esc="short(c.total)"/></div>
+                  <div class="adk_amt"><t t-esc="short(c.paid)"/></div>
+                </div>
+              </t>
+              <div t-if="!state.data.top_clients.length" class="adk_empty">Aucune donnée sur la période.</div>
+            </div>
+          </div>
+
+          <div class="adk_card">
+            <h3 class="adk_card_t">Types de tarification</h3>
+            <p class="adk_card_s">Réservations clients par formule</p>
+            <t t-if="state.data.tariffs.length">
+              <div class="adk_rows">
+                <t t-foreach="state.data.tariffs" t-as="t" t-key="t.name">
+                  <div class="adk_row">
+                    <div class="adk_row_h"><span><t t-esc="t.name"/></span><b><t t-esc="t.count"/></b></div>
+                    <div class="adk_track"><div class="adk_fill" t-att-style="'width:' + (t.count / state.data.tariffs[0].count * 100) + '%;background:#d9cbe6'"/></div>
+                    <div class="adk_row_n">CA encaissé : <t t-esc="money(t.amount)"/></div>
+                  </div>
+                </t>
+              </div>
+            </t>
+            <div t-else="" class="adk_empty">Aucune donnée sur la période.</div>
+          </div>
+        </section>
+
+        <!-- ===== Responsables ===== -->
+        <section class="adk_card adk_wide">
+          <h3 class="adk_card_t">Travail par responsable de parking</h3>
+          <p class="adk_card_s">Réservations gérées, chiffre d'affaires encaissé et montants restant à encaisser</p>
+          <div class="adk_table">
+            <div class="adk_tr adk_th"><div>Responsable</div><div>Réservations</div><div>Encaissé</div><div>En attente</div></div>
+            <t t-foreach="state.data.managers" t-as="u" t-key="u.name">
+              <div class="adk_tr">
+                <div class="adk_who"><span class="adk_avatar"><t t-esc="initials(u.name)"/></span><t t-esc="u.name"/></div>
+                <div><t t-esc="u.count"/></div>
+                <div class="adk_amt"><t t-esc="money(u.revenue)"/></div>
+                <div class="adk_amt"><t t-esc="money(u.due)"/></div>
+              </div>
+            </t>
+            <div t-if="!state.data.managers.length" class="adk_empty">Aucune activité sur la période.</div>
+          </div>
+        </section>
+
+        <div class="adk_foot">ADK Parking · tableau de bord en temps réel</div>
+      </t>
+      <div t-else="" class="adk_empty">Chargement…</div>
+    </div>
+  </div>
+</t>
+
+</templates>

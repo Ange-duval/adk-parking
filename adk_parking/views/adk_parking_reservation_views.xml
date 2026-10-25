@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_adk_parking_reservation_list" model="ir.ui.view">
+        <field name="name">adk.parking.reservation.list</field>
+        <field name="model">adk.parking.reservation</field>
+        <field name="arch" type="xml">
+            <list string="Réservations" decoration-muted="state == 'cancelled'"
+                  decoration-warning="payment_status == 'not_paid' and user_type == 'client'"
+                  decoration-success="state == 'confirmed'">
+                <field name="name"/>
+                <field name="parking_id"/>
+                <field name="place_id"/>
+                <field name="user_type"/>
+                <field name="partner_id"/>
+                <field name="responsible_id" optional="show"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="tariff_type_id"/>
+                <field name="amount_total" widget="monetary"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="payment_status" widget="badge"
+                       decoration-danger="payment_status == 'not_paid'"
+                       decoration-warning="payment_status == 'partial'"
+                       decoration-success="payment_status == 'paid'"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'confirmed'"
+                       decoration-info="state == 'done'"
+                       decoration-danger="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_adk_parking_reservation_form" model="ir.ui.view">
+        <field name="name">adk.parking.reservation.form</field>
+        <field name="model">adk.parking.reservation</field>
+        <field name="arch" type="xml">
+            <form string="Réservation de place">
+                <header>
+                    <button name="action_confirm" string="Confirmer" type="object"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_done" string="Terminer" type="object"
+                            invisible="state != 'confirmed'"/>
+                    <button name="action_set_draft" string="Repasser en brouillon" type="object"
+                            invisible="state not in ('confirmed','cancelled')"/>
+                    <button name="action_cancel" string="Annuler" type="object"
+                            invisible="state in ('cancelled','done')"/>
+                    <button name="action_unlock_fields" string="Déverrouiller pour modification" type="object"
+                            class="btn-warning" groups="adk_parking.group_adk_parking_manager"
+                            invisible="state == 'draft' or is_unlocked"/>
+                    <button name="action_create_invoice" string="Créer la facture" type="object"
+                            class="btn-primary"
+                            groups="adk_parking.group_adk_parking_manager"
+                            invisible="is_free or user_type != 'client' or invoice_id or not amount_total"/>
+                    <button name="action_mark_paid" string="Marquer payé" type="object"
+                            class="btn-success"
+                            invisible="payment_status == 'paid' or user_type != 'client' or is_free"/>
+                    <button name="action_mark_not_paid" string="Marquer non payé" type="object"
+                            invisible="payment_status != 'paid' or user_type != 'client' or is_free"/>
+                    <button name="%(action_report_adk_parking_ticket)d" string="Imprimer le ticket"
+                            type="action" invisible="state == 'draft'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_invoice" type="object" class="oe_stat_button"
+                                icon="fa-file-text-o" invisible="not invoice_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Facture</span>
+                            </div>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Gratuit" bg_color="text-bg-info" invisible="not is_free"/>
+                    <field name="is_unlocked" invisible="1"/>
+                    <div class="alert alert-warning mb-2" role="alert" invisible="not is_unlocked">
+                        🔓 Champs sensibles déverrouillés pour modification. Ils seront
+                        automatiquement reverrouillés au prochain enregistrement — la
+                        modification sera tracée dans l'historique ci-dessous.
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="parking_id" readonly="state != 'draft' and not is_unlocked"/>
+                            <field name="place_id" options="{'no_create': True}"
+                                   readonly="state != 'draft' and not is_unlocked"/>
+                            <field name="responsible_id"/>
+                            <field name="user_type" readonly="state != 'draft' and not is_unlocked"/>
+                            <field name="partner_id" readonly="state != 'draft' and not is_unlocked"/>
+                            <field name="phone"/>
+                            <field name="vehicle_plate"/>
+                        </group>
+                        <group>
+                            <field name="date_start" readonly="state != 'draft' and not is_unlocked"/>
+                            <field name="date_end" readonly="state != 'draft' and not is_unlocked"/>
+                            <field name="is_free" invisible="1"/>
+                            <field name="tariff_type_id" invisible="is_free" options="{'no_create': True}"
+                                   readonly="state != 'draft' and not is_unlocked"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="tariff_amount" widget="monetary" invisible="is_free"
+                                   readonly="state != 'draft' and not is_unlocked"/>
+                            <field name="duration_days"/>
+                            <field name="amount_total" widget="monetary" invisible="is_free"/>
+                            <field name="payment_status" widget="badge"
+                                   invisible="is_free"
+                                   decoration-danger="payment_status == 'not_paid'"
+                                   decoration-warning="payment_status == 'partial'"
+                                   decoration-success="payment_status == 'paid'"/>
+                            <field name="invoice_id" invisible="1"/>
+                            <field name="invoice_payment_state" invisible="not invoice_id"/>
+                        </group>
+                    </group>
+                    <group string="Notes">
+                        <field name="notes" nolabel="1"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_adk_parking_reservation_kanban" model="ir.ui.view">
+        <field name="name">adk.parking.reservation.kanban</field>
+        <field name="model">adk.parking.reservation</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state">
+                <field name="name"/>
+                <field name="place_id"/>
+                <field name="user_type"/>
+                <field name="payment_status"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="oe_kanban_global_click p-2 {{record.state.raw_value == 'confirmed' ? 'border-start border-4 border-success' : record.state.raw_value == 'cancelled' ? 'border-start border-4 border-danger' : ''}}">
+                            <strong><field name="name"/></strong> - <field name="partner_id"/>
+                            <div>
+                                <field name="place_id"/>
+                                <span class="badge rounded-pill text-bg-secondary ms-1"><field name="user_type"/></span>
+                            </div>
+                            <div>
+                                <field name="payment_status" widget="badge"
+                                       decoration-danger="payment_status == 'not_paid'"
+                                       decoration-warning="payment_status == 'partial'"
+                                       decoration-success="payment_status == 'paid'"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_adk_parking_reservation_calendar" model="ir.ui.view">
+        <field name="name">adk.parking.reservation.calendar</field>
+        <field name="model">adk.parking.reservation</field>
+        <field name="arch" type="xml">
+            <calendar string="Réservations" date_start="date_start" date_stop="date_end"
+                      color="parking_id" mode="month">
+                <field name="partner_id"/>
+                <field name="parking_id"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="view_adk_parking_reservation_search" model="ir.ui.view">
+        <field name="name">adk.parking.reservation.search</field>
+        <field name="model">adk.parking.reservation</field>
+        <field name="arch" type="xml">
+            <search string="Réservations">
+                <field name="name"/>
+                <field name="parking_id"/>
+                <field name="partner_id"/>
+                <field name="place_id"/>
+                <field name="responsible_id"/>
+                <filter string="Personnel" name="filter_employee" domain="[('user_type','=','employee')]"/>
+                <filter string="Client" name="filter_client" domain="[('user_type','=','client')]"/>
+                <separator/>
+                <filter string="Non payé" name="filter_not_paid" domain="[('payment_status','=','not_paid')]"/>
+                <filter string="Partiellement payé" name="filter_partial" domain="[('payment_status','=','partial')]"/>
+                <filter string="Payé" name="filter_paid" domain="[('payment_status','=','paid')]"/>
+                <separator/>
+                <filter string="Confirmées" name="filter_confirmed" domain="[('state','=','confirmed')]"/>
+                <group expand="0" string="Grouper par">
+                    <filter string="Parking" name="group_parking" context="{'group_by': 'parking_id'}"/>
+                    <filter string="Responsable Parking" name="group_responsible" context="{'group_by': 'responsible_id'}"/>
+                    <filter string="Type" name="group_type" context="{'group_by': 'user_type'}"/>
+                    <filter string="Statut paiement" name="group_payment" context="{'group_by': 'payment_status'}"/>
+                    <filter string="Statut" name="group_state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_adk_parking_reservation" model="ir.actions.act_window">
+        <field name="name">Réservations</field>
+        <field name="res_model">adk.parking.reservation</field>
+        <field name="view_mode">list,kanban,calendar,form</field>
+        <field name="search_view_id" ref="view_adk_parking_reservation_search"/>
+        <field name="context">{'search_default_filter_confirmed': 0}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Créez votre première réservation de place
+            </p>
+        </field>
+    </record>
+
+    <record id="action_adk_parking_reservation_unpaid" model="ir.actions.act_window">
+        <field name="name">Paiements en attente</field>
+        <field name="res_model">adk.parking.reservation</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('user_type','=','client'), ('payment_status','=','not_paid'), ('state','!=','cancelled')]</field>
+    </record>
+
+</odoo>
